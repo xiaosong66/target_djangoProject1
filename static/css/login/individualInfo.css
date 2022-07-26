@@ -1,0 +1,113 @@
+main{
+    background-color: inherit;
+    height: 500px;
+}
+
+/*导航*/
+#logineduser{
+    /*background-color: white;*/
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border: 1px solid #e0e3e6;
+    border-bottom: 0;
+}
+
+input{
+    background-color: inherit;
+}
+
+#leftSideColumn{
+    border-right-width: 2px;
+    height: 500px;
+}
+
+#rightSideColumn{
+    border: 1px solid #dee2ef;
+    border-radius: 10px;
+    height: 450px;
+}
+
+/*左侧导航*/
+#leftSideColumn  button{
+    margin-top: 30px;
+}
+
+
+#leftSideColumn .nav-link{
+    color: black;
+}
+#leftSideColumn .nav-link.active{
+    border-radius: 3px;
+    background-color: #505050;
+    color: white;
+}
+#leftSideColumn .nav-link:hover{
+    border-radius: 3px;
+}
+
+#leftSideColumn a{
+    text-align: center;
+}
+/*右侧内容*/
+#rightContent{
+
+}
+
+.tab-pane{
+    height: 100%;
+
+}
+
+
+/*个人信息每部分*/
+#myInfo div{
+    margin-left: 100px;
+    height: 50px;
+}
+
+#myInfoForm label{
+    width: 100px;
+}
+
+#myInfoForm input{
+    background-color: inherit;
+    border: none;
+}
+/*选中不显示轮廓*/
+#myInfoForm input:focus-visible{
+    outline: none;
+}
+
+/****************密码管理*****************************/
+#pdDiv,#authCodeDiv{
+    margin-left: 100px;
+}
+
+/*得到验证码*/
+#getAuthCodeBtn{
+    background-color: inherit;
+    border: none;
+    color: #0d6efd;
+    font-size: 10px;
+}
+
+#pdManage div{
+    margin-top: 20px;
+}
+
+#pdManage input{
+    /*background: inherit;*/
+    border: solid 1px #acacac;
+    border-radius: 5px;
+    /*border-color: white;*/
+}
+
+/***********************登录地*************************/
+#loginManage{
+    margin-left: 100px;
+}
+
+/******************  用户信息****************************/
+#aboutForm{
+    margin-left: 100px;
+}

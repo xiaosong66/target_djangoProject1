@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}注册{% endblock %}
+{% block css %}
+    <link href="/static/css/login/register.css" rel="stylesheet"/>{% endblock %}
+{% block judgeLogined %}{% endblock %}
+{% block myscript %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#getCode").on('click', function () {
+                //const myModal = new bootstrap.Modal(document.getElementById('verifyCodeModal'));
+                //myModal.show()
+                $.post("/lg/sendMessage/rt/", {email: $("#email").val()}, function (data){
+                    if(data==='验证码发送成功'){
+                        alert("验证码发送成功,注意查看邮箱！")
+                    }
+                })
+                //$("#username").prop('value', $("#email").val())
+                {% comment %}$("#verifyCodeBtn").click(function (){
+                    $.post("/lg/sendMessage/", function (result){
+                        alert("验证码发送成功")
+                    });
+                });{% endcomment %}
+            })
+        })
+    </script>
+{% endblock %}
+
+{% block content %}
+    <main class="form-register mx-auto shadow rounded" style="margin-top: 100px;" id="registerWindow">
+        <form action="{% url "createUser" %}" method="post" id="registerForm">
+            {% csrf_token %}
+            <h1 class="h3 mb-3 fw-normal text-center">欢迎注册</h1>
+            {% for item in form %}
+                <div class="form-floating mb-2">
+                    {{ item }}
+                    {{ item.label_tag }}
+                    {{ item.errors }}
+                </div>
+            {% endfor %}
+            {% comment %}<div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Username" name="username">
+                <label for="floatingInput">用户名</label>
+            </div>
+            <div class="form-floating">
+                <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="pwd">
+                <label for="floatingPassword">密码</label>
+            </div>{% endcomment %}
+
+            <a id="getCode" class="border-0 bg-transparent text-decoration-underline w-100 text-end">获取验证码</a>
+
+            <div class="mt-2 col d-block">
+                <button class="btn btn-success" type="reset">重置</button>
+                <button class="btn btn-primary float-end" type="submit" id="registerConfirm">注册</button>
+            </div>
+        </form>
+
+
+        {% comment %}<div class="modal" tabindex="-1" id="verifyCodeModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">验证验证码</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="code">验证码</label>
+                        <input type="text" name="code" id="code">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="verifyCodeBtn">验证</button>
+                    </div>
+                </div>
+            </div>
+        </div>{% endcomment %}
+    </main>
+{% endblock %}

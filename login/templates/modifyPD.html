@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}个人信息{% endblock %}
+{% block css %}
+    <link href="/static/css/login/modifyPD.css" rel="stylesheet"/>{% endblock %}
+{% block judgeLogined %}{% endblock %}
+{% block myscript %}
+    <script type="text/javascript">
+        $(document).ready(function (){
+            //点击修改密码
+            const form = $("#modifyPDForm");
+            $('#modifyPD_right').on('click', function () {
+                $.ajax({
+                    url: "{% url 'modify_PD' %}",
+                    type: "POST",
+                    data: form.serialize(),
+                    dataType: "text",
+                    headers: {"X-CSRFtoken": $.cookie("csrftoken")},
+                    success: function (data) {
+                        if (data === '密码修改成功'){
+                            form[0].reset();
+                            alert('密码修改成功');
+                            location.href = '/lg/login/'
+                        }
+                    },
+                });
+            })
+
+            //获取邮件验证码
+            $("#getAuthCodeBtn").on("click", function () {
+                $.ajax({
+                    url: "{% url 'sendMessage' type="forgetPD" %}",
+                    type: "POST",
+                    data: form.serialize(),
+                    dataType: "text",
+                    //headers: {"X-CSRFtoken": $.cookie("csrftoken")},
+                    success: function (data) {
+                        if(data==='验证码发送成功'){
+                            alert('验证码发送成功')
+                        }
+                    },
+                });
+            });
+        })
+    </script>
+{% endblock %}
+
+{% block content %}
+    <main class="col" style="margin-top: 80px">
+        <form class="bg-light mx-auto shadow rounded pt-3" id="modifyPDForm">
+            <h3 class="mb-3 fw-normal text-center">修改密码</h3>
+            <!-- 密码 -->
+            <div id="pdDiv">
+                <div class="col-11 form-floating mb-2 mx-auto">
+                    <input type="text" class="form-control rounded" id="floatingInput" placeholder="Username"
+                           name="username">
+                    <label for="floatingInput">用户名:</label>
+                </div>
+                <div class="col-11 form-floating mb-2 mx-auto">
+                    <input class="form-control rounded" type="password" id="new_password" name="new_password"
+                        placeholder="new_password">
+                    <label for="new_password">新密码:</label>
+                </div>
+                <div class="col-11 form-floating mb-2 mx-auto">
+                    <input class="form-control rounded" type="password" id="repeat_new_password" name="repeat_new_password"
+                        placeholder="repeat_new_password">
+                    <label for="repeat_new_password">重复密码:</label>
+                </div>
+            </div>
+            <!-- 验证码 -->
+            <div class="col">
+                <div class="col-11 form-floating mb-2 mx-auto">
+                    <input class="form-control" type="email" id="myEmail" name="myEmail" placeholder="myEmail">
+                    <label class="" for="myEmail">邮箱:</label>
+                </div>
+
+                <div class="input-group mb-2 mx-auto">
+                    <input type="text" class="form-control" placeholder="验证码" aria-label="authCode" aria-describedby="getAuthCodeBtn" name="authCode">
+                    <button class="btn btn-outline-secondary" type="button" id="getAuthCodeBtn">获得验证码</button>
+                </div>
+            </div>
+            <!-- 按钮 -->
+            <div class="col px-3 pb-3" id="modifyPDBtn">
+                <button class="btn btn-primary mx-auto" type="reset">重置</button>
+                <button class="btn btn-warning mx-auto float-end" type="button" id="modifyPD_right">提交</button>
+            </div>
+        </form>
+
+    </main>
+{% endblock %}

@@ -1,0 +1,63 @@
+body{
+    /*background: #ffffff;*/
+}
+
+/*导航*/
+#propertyLi{
+    /*background-color: white;*/
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border: 1px solid #e0e3e6;
+    border-bottom: 0;
+}
+button {
+    background: #d1e7dd;
+}
+/*搜索栏*/
+#searchbar{
+    left: -50px;
+}
+
+
+/*吐司消息*/
+/*添加、删除、编辑、共享数据成功提醒*/
+#addOK, #deleteOK, #editOK, #shareOK{
+    position: absolute;
+    right: 0;
+    top: 200px;
+    z-index: 999;
+
+}
+
+/*文件描述*/
+.description{
+    background: inherit;
+    overflow: hidden;
+    height: 1.5em;
+}
+
+/*删除数据弹框*/
+#deleteSelect, #deleteWarn{
+    position: fixed;
+    top:25%;
+}
+
+
+.bg-my1 {
+    background-color: #74921a;
+}
+.bg-my1:hover {
+    background-color: #678318;
+}
+
+/*验证码按钮*/
+#getCode{
+    position: relative;
+    top: -30px;
+    right: -80%;
+    font-size: 0.5em;
+    color: blue;
+    text-decoration: underline;
+    background-color: inherit;
+    border: none;
+}

@@ -1,0 +1,58 @@
+/*导航*/
+#loginLi{
+    background-color: white;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border: 1px solid #e0e3e6;
+    border-bottom: 0;
+}
+
+
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+.form-signin .checkbox {
+    font-weight: 400;
+}
+
+.form-signin .form-floating:focus-within {
+    z-index: 2;
+}
+
+.form-signin input[type="email"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+/*登录窗口*/
+#logWindow {
+    margin-top: 40px;
+    background-color: #ffffff;
+}
+
+/*获取验证码*/
+#getAuthCodeBtn{
+    background-color: inherit;
+    border: none;
+    color: #0d6efd;
+    font-size: 10px;
+}
+
+/*标题*/
+#title{
+    margin-top: 50px;
+    width: 100%;
+    text-align: center;
+
+}

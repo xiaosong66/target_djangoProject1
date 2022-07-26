@@ -1,0 +1,18 @@
+/*导航*/
+#riskWarningLi{
+    /*background-color: white;*/
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border: 1px solid #e0e3e6;
+    border-bottom: 0;
+}
+
+#loginWarning{
+    width: 95%;
+    height: 200px;
+}
+
+#propertyWarning{
+    width: 95%;
+    height: 200px;
+}

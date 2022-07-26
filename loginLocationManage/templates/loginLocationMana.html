@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}登录管理{% endblock %}
+{% block css %}
+    <link href="/static/css/loginMana/loginMana.css" rel="stylesheet"/>{% endblock %}
+
+
+
+{% block myscript %}
+    <script type="text/javascript"
+            src="https://webapi.amap.com/maps?v=1.4.15&key=f24f24fcfe7c34bab3632ece147874e0"></script>
+    <script src="/static/js/loginLocationManage/loginLocationManage.js"></script>
+{% endblock %}
+{% block content %}
+    <main class="property-page rounded bg-light">
+        <div class="mx-auto">
+            <!-- 登录地管理 -->
+            <div style="height: 10px;"></div>
+            <div class="ms-2 me-3" id="logInfo">
+                最近登录地：
+            </div>
+            <div class="" id="logManage">
+                <div class="ms-1 d-inline-block">
+                    <h4 class="fw-bold mb-0 mt-2" id="showLogInfoTitle">最近登录信息</h4>
+                </div>
+                <div class="float-end d-inline me-2" id="searchbar" style="height: 40px">
+                    <div class="float-start col-auto me-1">
+                        <label for="searchKey" class="visually-hidden">输入关键字查询</label>
+                        <input type="search" class="form-control border-success" id="inquireContent"
+                               placeholder="输入IP或登录地查询"
+                               name="inquireContent" style="background-color: inherit">
+                    </div>
+                    <div class="float-end col-auto">
+                        <button type="button" class="btn btn-success mb-3" id="searchBtn">查询</button>
+                    </div>
+                </div>
+
+                <table class="table table-bordered table-striped bg-light">
+                    <thead class="table-success">
+                    <tr class="text-center">
+                        <th><label for="selectAll"></label><input type="checkbox" id="selectAll"></th>
+                        <th>编号</th>
+                        <th>登录类型</th>
+                        <th>所属用户</th>
+                        <th>登录时间</th>
+                        <th>登陆地点</th>
+                        <th>登录ip</th>
+                        <th>登录信息</th>
+                        <th>成功登录</th>
+                        <th>解决方式</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody class="text-center" id="showItems">
+                    {% if allData %}
+                        {% for item in allData %}
+                            <tr class="property-item" id="{{ item.id }}">
+                                <td><label><input type="checkbox"></label></td>
+                                <td>{{ forloop.counter }}</td>
+                                {% if item.location == request.session.common_log_location %}
+                                    <td>常用地登录</td>
+                                {% else %}
+                                    <td class="text-warning">异地登录</td>
+                                {% endif %}
+
+                                <td>{{ item.user }}</td>
+                                <td>{{ item.log_time }}</td>
+                                <td>{{ item.location }}</td>
+                                <td>{{ item.ip }}</td>
+                                <td>
+                                    {% if item.logInfo == '登录账户锁定' %}
+                                        <p class="m-0" style="color: red">{{ item.logInfo }}</p>
+                                    {% else %}
+                                        {{ item.logInfo }}
+                                    {% endif %}
+                                </td>
+                                {% if item.if_log_success == 1 %}
+                                    <td>是</td>
+                                {% else %}
+                                    <td class="text-warning">否</td>
+                                {% endif %}
+                                <td>{{ item.solve_method }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-primary trustBTN" data-bs-toggle="modal"
+                                            data-bs-target="#trustItem">信任
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm btn-success authBtn">授权</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!---------------  信任一条数据  ------------------------>
+    <div class="modal fade" id="trustItem" tabindex="-1" aria-labelledby="trustItem" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">你正在对一条数据操作</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="trustForm">
+                        <h5>是否信任该条数据</h5>
+                        <label for="trustIt">是</label><input type="radio" id="trustIt" name="if_trust" value="1">
+                        <label for="distrustIt">否</label><input type="radio" id="distrustIt" name="if_trust" value="0">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal">取消
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning modifyPdBtn" data-bs-toggle="modal"
+                            data-bs-target="#modifyPDModal">修改密码
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal" id="rightTrust">确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>  <!-- 表格 -->
+
+    <!-- 功能：修改密码 -->
+    <div class="modal fade" id="modifyPDModal" tabindex="-1" aria-labelledby="modifyPDModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">修改密码</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <!-- 密码信息 -->
+                <div class="modal-body">
+                    <form id="pdManageForm">
+                        {% csrf_token %}
+                        <!-- 密码 -->
+                        <div id="pdDiv">
+                            {% comment %}<div class="col">
+                                <label class="col-3" for="now_password">原密码：</label>
+                                <input class="col-5" type="password" id="now_password" name="now_password"
+                                       autocomplete="new-password">
+                            </div>{% endcomment %}
+                            <div class="col">
+                                <label class="col-3" for="new_password">新密码：</label>
+                                <input class="col-5" type="password" id="new_password" name="new_password">
+                            </div>
+                            <div class="col">
+                                <label class="col-3" for="repeat_new_password">重复密码：</label>
+                                <input class="col-5" type="password" id="repeat_new_password"
+                                       name="repeat_new_password">
+                            </div>
+                        </div>
+                        <!-- 验证码 -->
+                        <div id="authCodeDiv">
+                            <div class="col">
+                                <label class="col-3" for="myEmail">邮箱:</label>
+                                <input class="col-5" type="email" id="myEmail" name="myEmail">
+
+                                <button class="text-decoration-underline col-2" type="button" id="getAuthCodeBtn">
+                                    获取验证码
+                                </button>
+                            </div>
+                            <div class="col">
+                                <label class="col-3" for="authCode">验证码：</label>
+                                <input class="col-5" type="text" id="authCode" name="authCode">
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <!-- 按钮 -->
+                    <div class="d-flex float-end">
+                        <button class="btn btn-primary me-1" type="reset" data-bs-dismiss="modal">取消</button>
+                        <button class="btn btn-warning me-2" type="button" id="modifyPD_right">提交</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {#    授权#}
+    <!-- 管理 -->
+    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="deleteWarn" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">你正在管理授权IP</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addNewIpForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>用户：
+                                <input class="border-0 num" type="text" value="{{ request.user }}"
+                                       readonly>
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="M_create_time" class="form-label">创建时间</label>
+                            <input class="form-control" id="M_create_time" type="text"
+                                   value="{{ authData.auth_first_time }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="M_auth_ip" class="form-label">授权IP</label>
+                            <input class="form-control" id="M_auth_ip" type="text" value="{{ authData.ip }}"
+                                   name="M_auth_ip" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="M_auth_start_time" class="form-label">授权起始时间</label>
+                            <input class="form-control" id="M_auth_start_time" type="text"
+                                   value="{{ authData.auth_start_time }}"
+                                   name="M_auth_start_time" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="M_auth_end_time" class="form-label">授权结束时间</label>
+                            <input class="form-control" type="text" id="M_auth_end_time"
+                                   value="{{ authData.auth_end_time }}"
+                                   name="M_auth_end_time" readonly>
+                        </div>
+                        <div class="mt-1">
+                            <div>
+                                是否授权登录:
+                                {% if authData.if_auth_login %}
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="authLogin_yes" value="1" disabled checked>
+                                        <label class="form-check-label" for="authLogin_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="authLogin_no" value="0" disabled>
+                                        <label class="form-check-label" for="authLogin_no">
+                                            否
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="authLogin_yes" value="1" disabled>
+                                        <label class="form-check-label" for="authLogin_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="authLogin_no" value="0" disabled checked>
+                                        <label class="form-check-label" for="authLogin_no">
+                                            否
+                                        </label>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                                <a class="text-decoration-none text-white" href="/AM/authorization/">修改</a>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

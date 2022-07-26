@@ -1,0 +1,64 @@
+/*body{*/
+/*    background: #f8f9fa;*/
+/*}*/
+/*导航*/
+#indexLi{
+    /*background-color: white;*/
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border: 1px solid #e0e3e6;
+    border-bottom: 0;
+
+}
+/*告示*/
+#bulletin{
+    /*background: white;*/
+}
+
+#line{
+    border-bottom: 2px solid #00adee;
+    width: 100px;
+    margin: auto auto 10px;
+}
+#title_line{
+    border-bottom: 2px solid #141515;
+    width:60%;
+    margin: auto auto 10px;
+}
+
+/*登录信息*/
+#logInfo{
+    /*background: white;*/
+
+}
+#mapInfo{
+    height: 300px;
+}
+#logInfoTitle{
+    position: absolute;
+    z-index: 999;
+    font-weight: bolder;
+    font-size: 1rem;
+}
+
+
+/*用户储存空间*/
+#loginInfo{
+    /*background: #f5f5f5;*/
+}
+
+#showLoginInfoChart{
+    width: 500px;
+    height: 300px;
+}
+
+.amap-copyright {
+    opacity: 0;
+}
+
+/*资产授权信息*/
+#propertyAuth{
+    /*background: #ffffff;*/
+    width: 90%;
+    height: 100px;
+}

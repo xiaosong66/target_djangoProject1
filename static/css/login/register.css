@@ -1,0 +1,22 @@
+.form-register {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+/*登录窗口*/
+#registerWindow {
+    margin-top: 100px;
+    background-color: #ffffff;
+}
+
+.errorlist {
+    font-size: 0.5em;
+    color: red;
+}
+
+#getCode{
+    font-size: 0.5em;
+    color: blue;
+}

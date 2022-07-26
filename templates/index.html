@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}主页{% endblock %}
+{% block css %}
+    <link href="/static/css/index.css" rel="stylesheet"/>{% endblock %}
+
+
+{% block myscript %}
+    <!-- 必须先加载 -->
+    <script type="text/javascript"
+            src="https://webapi.amap.com/maps?v=1.4.15&key=f24f24fcfe7c34bab3632ece147874e0&plugin=Map3D,AMap.Scale,AMap.ToolBar,AMap.DistrictLayer,AMap.CitySearch"></script>
+    <!-- 获取ip的搜狐接口 -->
+    <script src="https://pv.sohu.com/cityjson"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            {% if request.session.email == 'No' %}
+                alert('请及时完善邮箱信息,后果自负')
+            {% endif %}
+            /*
+            获取用户ip和与位置信息
+             */
+            const ip = returnCitySN["cip"]
+            console.log(ip)
+            $(function () {
+                $('#ip').html(ip);
+            })
+            // 获取具体的地理位置信息
+            let location;
+            $.ajax({
+                url: 'http://api.map.baidu.com/location/ip?ak=ia6HfFL660Bvh43exmH9LrI6',
+                type: 'POST',
+                dataType: 'jsonp',
+                success: function (data) {
+                    //console.log(data)
+                    location = data.content.address_detail.province + "," + data.content.address_detail.city
+                    $('#city').html(location)
+                    $('.location').html(location)
+                }
+            });
+
+
+            /*********************************** 用户登录信息图  *****************************************************/
+                // 指定图表的配置项和数据
+                // 分析用户home使用情况
+            const myChart = echarts.init(document.getElementById('showLoginInfoChart'));
+            const option = {
+                title: {
+                    text: '用户登录总览',
+                },
+                tooltip: {},
+                xAxis: {
+                    data: []
+                },
+                yAxis: {},
+                series: [
+                    {
+                        name: '登录次数',
+                        type: 'bar',
+                        data: []
+                    }
+                ]
+            };
+
+            //获取用户登录信息
+            $.ajax({
+                url: '{% url 'log_info' %}',
+                type: 'POST',
+                dataType: 'json',
+                headers: {"X-CSRFtoken": $.cookie("csrftoken")},
+                success: function (data) {
+                    myChart.setOption({
+                        xAxis: {
+                            data: data[0]
+                        },
+                        series: [
+                            {
+                                // 根据名字对应到相应的系列
+                                name: '登录次数',
+                                data: data[1]
+                            }
+                        ]
+                    })
+                    //console.log(data)
+                }
+            })
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+            /********  echarts 绘制地图  ****/
+
+        });
+    </script>
+    <!-- 地图 -->
+    <script src="/static/js/index/map.js"></script>
+    <script src="/static/js/index/index.js"></script>
+{% endblock %}
+{% block content %}
+    <main class="indexPage bg-light rounded mx-auto" style="width: 99%;">
+        <h2 id="title" style="text-align: center;padding-top: 10px;">用户信息安全检测与管理系统</h2>
+        <div id="title_line"></div>
+        <div class="m-auto border-bottom" id="bulletin">
+            {#            <h4 class="text-center my-1">告示</h4>#}
+            {#            <div id="line"></div>#}
+            <div class="ms-4 text-center mb-3 mt-4" id="bulletinShow">
+                <i class="fas fa-bell">当前登录地址为:{{ request.META.HTTP_X_FORWARDED_FOR }}<a href="#" id="city"></a> ip:<a href="#" id="ip"></a></i><br>
+                <i class="fas fa-bell">当前登录平台为:
+                    <a href="#" id="oprationSys">
+                        {{ request.user_agent.os.family }}{{ request.user_agent.os.version_string }}
+                    </a>.
+                    请求设备为:
+                    <a href="#" id="oprationSys">
+                        {{ request.user_agent.browser.family }}
+                    </a>.
+                </i><br>
+                <i class="fas fa-marker">最近共享资产:<a class="authProperty-item m-auto" id="showItems">
+                    {% if allData %}
+                        {{ allData.fileDescribe }}
+                    {% else %}
+                        <b>最近无共享资产</b>
+                    {% endif %}
+                </a></i><br/>
+                <i class="fas fa-exclamation"><a href="/RW/riskWarning/"> 登录信息详情，点击将转到风险管理页面！</a></i><br>
+            </div>
+        </div>
+
+        {% comment %} {# 流动共享#}
+        <div class="border-bottom" style="background: white; height: 100px">
+            暂无用户共享公用
+        </div>
+{% endcomment %}
+        <div class="col d-flex my-4 m-auto">
+            <div class="col-5 m-auto " id="logInfo">
+                <h6 class="text-center ms-3 mt-3" id="logInfoTitle">
+                    <a class="text-decoration-none text-black" href="/AM/authorization/">登录地点</a></h6>
+                <div class="map mt-3" id="mapInfo"></div>
+                <div class="legend" id="legend">
+                    <ul></ul>
+                </div>
+            </div>
+
+            <div class="col-5 m-auto " id="loginInfo" style="">
+                <div class="" id="showLoginInfoChart">
+                </div>
+
+            </div>
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,43 @@
+table {
+    width: 100%;
+    /*height: 100%;*/
+    /*background: linear-gradient(-45deg, #91ffbe, #749afd) no-repeat;*/
+    background-color: white;
+}
+
+
+/*导航*/
+#loginManageLi {
+    /*background: inherit repeat;*/
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border: 1px solid #e0e3e6;
+    border-bottom: 0;
+}
+
+
+/*登录信息*/
+#logInfo {
+    /*background-color: white;*/
+    height: 400px;
+}
+
+/*信息管理*/
+#logManage {
+    /*background-color: white;*/
+    height: 200px;
+}
+
+
+/*得到验证码*/
+#getAuthCodeBtn {
+    background-color: inherit;
+    border: none;
+    color: #0d6efd;
+    font-size: 10px;
+}
+
+
+#pdManageForm div {
+    margin-top: 10px;
+}

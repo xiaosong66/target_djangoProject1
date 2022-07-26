@@ -1,0 +1,557 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}资产{% endblock %}
+{% block css %}
+    <link href="/static/css/propertyManage/property.css" rel="stylesheet"/>{% endblock %}
+
+{% block myscript %}
+    <script src="/static/js/propertyManage/property.js"></script>
+{% endblock %}
+
+{% block content %}
+    <main class="property-page mx-auto mt-5 bg-light rounded">
+        <div class="mt-3 col">
+            <div class="col-8 float-start mt-2">
+                <!-- 查询内容 -->
+                <form class="form-check d-inline-block" id="searchContentForm">
+                    {% csrf_token %}
+                    <div class="dropdown btn-group col-4">
+                        <label for="searchType"></label>
+                        <input class="btn btn-outline-success opacity-100 w-75 rounded-start" id="searchType"
+                               name="searchType" placeholder="输入搜索类型">
+                        <button class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
+                                aria-expanded="false" id="toggle1" type="button"></button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item border-bottom" href="#">资产类型</a></li>
+                            <li><a class="dropdown-item border-bottom" href="#">描述</a></li>
+                            <li><a class="dropdown-item" href="#">被共享资产</a></li>
+                        </ul>
+                    </div>
+                    <!-- 搜索框 -->
+                    <div class="ms-4 float-end position-relative" id="searchbar">
+                        <div class="float-start col-auto me-1">
+                            <label for="searchKey" class="visually-hidden">输入关键字查询</label>
+                            <input type="search" class="form-control border-success" id="searchKey" placeholder="输入查询内容"
+                                   name="inquireContent" style="background-color: inherit">
+                        </div>
+                        <div class="float-end col-auto">
+                            <button type="button" class="btn btn-success mb-3" id="searchBtn">查询</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 按钮功能组 -->
+            <div class="mx-auto btn-group float-end mt-2 me-2">
+                <button type="button" class="btn btn-primary"
+                        id="addNew">
+                    <i class="fas fa-plus me-1"></i>新增
+                </button>
+                <button type="button" class="btn btn-warning delete" data-bs-toggle="modal"
+                        data-bs-target="#deleteSelect" id="deleteSelectBtn"><i class="fas fa-times me-1"></i>删除
+                </button>
+
+                <button type="button" class="btn btn-success">
+                    <i class="fas fa-star me-1"></i><a class="text-decoration-none text-white"
+                                                       href="/AM/authorization/">授权管理</a>
+                </button>
+            </div>
+        </div>
+
+        <!-- 表格 -->
+        <table class="table table-bordered table-striped">
+            <thead class="table-success">
+            <tr class="text-center">
+                <th><label for="selectAll"></label><input type="checkbox" id="selectAll"></th>
+                <th>资产编号</th>
+                <th>资产类型</th>
+                <th>所属用户</th>
+                <th>创建时间</th>
+                <th>修改时间</th>
+                <th class="overflow-hidden">资产描述</th>
+                <th>是否备份</th>
+                <th>是否加密</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody class="text-center" id="showItems">
+            {% if allData %}
+                {% for item in allData %}
+                    <tr class="property-item {{ share_tag }}" id="{{ item.id }}">
+                        <td><label><input type="checkbox"></label>
+                        </td>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.type }}</td>
+                        <th>{{ item.user }}</th>
+                        <td>{{ item.create_time }}</td>
+                        <td>{{ item.modify_time }}</td>
+                        <td>
+                            <textarea class="border-0 description" style="font-size: 10px"
+                                      readonly>{{ item.describe }}</textarea>
+                        </td>
+                        <td>{{ item.backup }}</td>
+                        <td>{{ item.encryption }}</td>
+                        <td>
+                            <button type="button" class="edit btn btn-sm btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#editItem"><i class="fas fa-pen me-1"></i>编辑
+                            </button>
+
+                            <button type="button" class="btn btn-sm btn-warning delete" data-bs-toggle="modal"
+                                    data-bs-target="#deleteWarn"><i class="fas fa-times me-1"></i>删除
+                            </button>
+
+
+                            <button type="button" class="btn btn-sm btn-success detail" data-bs-toggle="modal"
+                                    data-bs-target="#itemDetail"><i class="fas fa-file me-1"></i>详情
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+
+
+            </tbody>
+        </table>
+
+        <!---------------  编辑一条数据  ------------------------>
+        <!-- '资产编号''资产类型''所属用户''创建时间''修改时间''资产描述''是否备份''是否加密' -->
+        <div class="modal fade" id="editItem" tabindex="-1" aria-labelledby="editItem" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">你正在编辑一条数据</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" id="editForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label>资产编号：
+                                    <input class="border-0 num" type="text" value="" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label>所属用户：
+                                    <input class="border-0 user" type="text" name="editUser" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label>资产类型：
+                                    <input class="type border-0" type="text" name="type" id="type" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3 visually-hidden">
+                                <label>待编辑id
+                                    <input class="editID" type="text" name="editID" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="create_time" class="form-label">创建时间</label>
+                                <input class="form-control createTime" id="create_time" type="text" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="modify_time" class="form-label">修改时间</label>
+                                <input class="form-control addTime" id="modify_time" type="text" name="modifyTime"
+                                       readonly>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">文件描述</span>
+                                <textarea class="form-control fileDescribe" aria-label="With textarea" name="describe"
+                                ></textarea>
+                            </div>
+                            <div class="mt-1">
+                                <div>
+                                    备份:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if-backup"
+                                               id="backup_yes" value="1">
+                                        <label class="form-check-label" for="backup_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if-backup"
+                                               id="backup_no" value="0">
+                                        <label class="form-check-label" for="backup_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    加密:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if-encrypt"
+                                               id="encrypt_yes" value="1">
+                                        <label class="form-check-label" for="encrypt_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if-encrypt"
+                                               id="encrypt_no" value="0">
+                                        <label class="form-check-label" for="encrypt_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="rightEdit">确定
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能：查看详情 -->
+        <div class="modal fade" id="itemDetail" tabindex="-1" aria-labelledby="itemDetail" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">你正在查看一条数据</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" id="editForm">
+                        <div class="modal-body">
+                            <div>
+                                <label>资产编号：
+                                    <input class="num border-0" type="text" name="editNum" readonly>
+                                </label>
+                            </div>
+                            <div>
+                                <label>所属用户：
+                                    <input class="user border-0" type="text" name="editUser" readonly>
+                                </label>
+                            </div>
+                            <div>
+                                <label>资产类型：
+                                    <input class="type border-0" type="text" name="type" id="type" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="create_time" class="form-label">创建时间</label>
+                                <input class="form-control createTime" id="create_time" type="text" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="modify_time" class="form-label">修改时间</label>
+                                <input class="form-control addTime" id="modify_time" type="text" name="modifyTime"
+                                       readonly>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">文件描述</span>
+                                <textarea class="form-control fileDescribe" aria-label="With textarea" name="describe"
+                                          readonly></textarea>
+                            </div>
+                            <div class="mt-1">
+                                <div>
+                                    备份:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input backupYes" type="radio" name="if-backup"
+                                               id="d_backup_yes" value="1" disabled>
+                                        <label class="form-check-label" for="d_backup_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input backupNo" type="radio" name="if-backup"
+                                               id="d_backup_no" value="0" disabled>
+                                        <label class="form-check-label" for="d_backup_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    加密:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input encryptYes" type="radio" name="if-encrypt"
+                                               id="d_encrypt_yes" value="1" disabled>
+                                        <label class="form-check-label" for="d_encrypt_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input encryptNo" type="radio" name="if-encrypt"
+                                               id="d_encrypt_no" value="0" disabled>
+                                        <label class="form-check-label" for="d_encrypt_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="edit btn btn-success" data-bs-toggle="modal"
+                                    data-bs-target="#editItem">编辑
+                            </button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#addPropertyModal" id="shareBtn">共享
+                            </button>
+                            <button type="button" class="btn bg-my1" id="downloadFileBtn">下载
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- 共享模态框 -->
+        <div class="modal fade" id="addPropertyModal" tabindex="-1" aria-labelledby="addPropertyModal"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">你正在新增共享资产</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="addNewPropertyForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label>所属用户：
+                                    <input class="border-0" type="text" value="{{ request.session.username }}"
+                                           readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_share_users" class="form-label">被共享用户</label>
+                                <input class="form-control" id="M_share_users" type="text" name="M_share_users">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="M_start_share_time" class="form-label">共享起始时间</label>
+                                <input class="form-control" id="M_start_share_time" type="datetime-local"
+                                       name="M_start_share_time">
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_end_share_time" class="form-label">共享结束时间</label>
+                                <input class="form-control" id="M_end_share_time" type="datetime-local"
+                                       name="M_end_share_time">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                        id="affirm_addNewShare_Property">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-----------------------   顶部功能按钮的模态弹框 ------------------------------------------------------------------------->
+        <!-- 添加数据框 -->
+        <div class="modal fade" id="addData" tabindex="-1" aria-labelledby="add-data" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">添加数据</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form class="form" id="addDataForm" role="form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="fileName" class="form-label">文件名</label>
+                                <input class="form-control" type="text" id="fileName" name="fileName">
+                            </div>
+                            <div class="mb-3">
+                                <label for="addTime" class="form-label">添加时间</label>
+                                <input class="form-control addTime" type="text" id="addTime" name="addTime" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="formFile" class="form-label">插入文件</label>
+                                <small class="visually-hidden" id="add_file_notion" style="color: red;">未添加文件！</small>
+                                <input class="form-control" type="file" id="formFile" name="myFile">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">文件描述</span>
+                                <textarea class="form-control" aria-label="With textarea" name="describe"
+                                          id="describe"></textarea>
+                            </div>
+                            <div class="my-2">
+                                <div>
+                                    备份:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if-backup"
+                                               id="backup_yes" value="1" checked>
+                                        <label class="form-check-label" for="backup_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if-backup"
+                                               id="backup_no" value="0">
+                                        <label class="form-check-label" for="backup_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    加密:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if-encrypt"
+                                               id="encrypt_yes" value="1" checked>
+                                        <label class="form-check-label" for="encrypt_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if-encrypt"
+                                               id="encrypt_no" value="0">
+                                        <label class="form-check-label" for="encrypt_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                {#                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="right_add">#}
+                                {#                                    确定#}
+                                {#                                </button>#}
+                                <button type="button" class="btn btn-primary" id="right_add">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 删除所有数据 -->
+        <div class="modal fade" id="deleteSelect" tabindex="-1" aria-labelledby="deleteSelect" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">警告</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        确定删除所选数据吗？
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" id="deleteAll">确定
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模态弹框 -->
+        <!-- 删除警告框 -->
+        <!-- 删除一条数据 -->
+        <div class="modal fade" id="deleteWarn" tabindex="-1" aria-labelledby="deleteWarn" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">警告</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        确定删除此条记录吗？
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="right">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!----------------------------------------------------  end 四个功能按钮模态弹框 ---------------------------------------->
+
+    </main>
+
+    <!-- 添加数据成功的模态框 -->
+    <div class="toast float-end" role="alert" aria-live="assertive" aria-atomic="true" id="addOK">
+        <div class="toast-header">
+            <strong class="me-auto">提醒</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            数据添加成功！
+        </div>
+    </div>
+    <!-- 删除数据成功的模态框 -->
+    <div class="toast float-end" role="alert" aria-live="assertive" aria-atomic="true" id="deleteOK">
+        <div class="toast-header">
+            <strong class="me-auto">提醒</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            删除数据成功！
+        </div>
+    </div>
+
+    <!-- 编辑数据成功的模态框  -->
+
+    <div class="toast float-end" role="alert" aria-live="assertive" aria-atomic="true" id="editOK">
+        <div class="toast-header">
+            <strong class="me-auto">提醒</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            编辑数据成功！
+        </div>
+    </div>
+
+    <!-- 共享数据成功的模态框  -->
+
+    <div class="toast float-end" role="alert" aria-live="assertive" aria-atomic="true" id="shareOK">
+        <div class="toast-header">
+            <strong class="me-auto">提醒</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            共享文件成功！
+        </div>
+    </div>
+
+    <!--- 设置二次密码 -->
+    <div class="modal" tabindex="-1" id="setSecondPD">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">设置二次密码</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" id="setSecondPDFrom">
+                        {% csrf_token %}
+                        <label for="secondPD" class="form-label">二次密码</label>
+                        <input type="password" class="form-control" id="secondPD" name="secondPD"
+                               placeholder="二次密码">
+                        <label for="re_secondPD" class="form-label">重复二次密码</label>
+                        <input type="password" class="form-control" id="re_secondPD" name="re_secondPD"
+                               placeholder="二次密码">
+                        <div>
+                            <label for="email" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   placeholder="邮箱">
+                            <button type="button" id="getCode">获取验证码</button>
+                        </div>
+                        <label for="code" class="form-label">验证码</label>
+                        <input type="text" class="form-control" id="code" name="code"
+                               placeholder="邮箱">
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="rightSetSecondPDBtn">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

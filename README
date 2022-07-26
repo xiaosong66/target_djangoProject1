@@ -1,0 +1,129 @@
+# 配置文件target_djangoProject1/settings.py
+
+1. 先运行下面命令，启动’日志记录和分析‘中间件，自动运行
+python manage.py disposeAccessLogs
+
+Linux配置：
+持久化任务+后台运行： nohup python3 manage.py disposeAccessLogs &
+查看任务： ps -aux | grep "python3 manage.py disposeAccessLogs"
+
+3. 启动自动每日重置登录失败次数命令
+python manage.py resetLoginFailureNum
+4. 
+持久化任务+后台运行： nohup python3 manage.py resetLoginFailureNum &
+查看任务： ps -aux | grep "python3 manage.py resetLoginFailureNum"
+
+4. 创建数据库
+create database target_db
+
+5. 创建数数据库表
+python manage.py makemigrations
+python manage.py migrate 
+
+6. 数据库配置
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
+        'NAME': 'target_db',  # 数据库名称
+        'HOST': '127.0.0.1',  # 数据库地址，本机 ip 地址 127.0.0.1
+        'PORT': 3306,  # 端口
+        'USER': 'root',  # 数据库用户名
+        'PASSWORD': '123456',  # 数据库密码
+    }
+}
+
+7. 邮件配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
+EMAIL_USE_SSL = True
+EMAIL_HOST = 'smtp.qq.com'  # 如果是 163 改成 smtp.163.com
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'xx@qq.com'  # 账号
+EMAIL_HOST_PASSWORD = 'xx'  # 授权码
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # 默认邮件
+
+8. apscheduler
+# Django调度器后台管理界面中显示的时间格式
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+# Seconds，超时时间25s
+APSCHEDULER_RUN_NOW_TIMEOUT = 25
+
+
+8. 启动缓存
+windows: memcached.exe -d start
+linux: 
+
+
+综述：
+1. 本系统主要实现用户行为分析的功能，并实现管理用户的资产安全，确保用户的操作可信。（0）
+2. 主要包括用户登录管理：密码修改，登录，注册，个人信息修改（1）
+3. 资产管理：上传文件，下载文件，共享资产，管理共享 （1）
+4. 登录地验证：验证登录IP，判断是否本人登录，异地检测，授权登录IP（1），常用登录地检测。
+5. 用户登录IP可视化,登录IP显示（1）
+6. 连续5次密码验证失败则锁定账号一天至凌晨（1），连续三天登陆失败锁定不可登录（0）。重置密码可以重新登录（0）。两星期内不登录用户需要邮箱验证。（0）
+7. 邮箱验证功能（1）
+8. 访问记录管理：404,500等，以及特殊目录访问记录，报警用户（0）
+9. memcached缓存
+10. 风险管理：
+    ①密码安全()：在用户登录的时候判断用户的密码强度（1），用户设立二次密码是判断它的强度
+    ②资产安全()：资产备份、加密
+    ③行为安全()：常用登录地、常用登录设备、常用登录IP
+    ④账户安全()：账户资料完善、邮箱设置
+    ⑤其他安全(): 服务器安全警报，多次密码尝试
+
+
+
+Nginx配置：
+在nginx的配置文件 "/etc/nginx/conf.d" 中新增加自定义配置，加入如下配置文件：
+server {
+        listen       80;
+        server_name  8.142.91.1;
+        location / {
+            include  uwsgi_params;
+            uwsgi_pass  127.0.0.1:9090;
+            uwsgi_param UWSGI_SCRIPT target_djangoProject1.wsgi;
+            uwsgi_param UWSGI_CHDIR /target_djangoProject1;
+            index  index.html index.htm;
+            client_max_body_size 35m;
+            # get real IP
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        location /static {
+                alias /home/static/;
+        }
+ }
+
+10. 启动uwsgi
+uwsgi --ini uwsgi.ini
+11. 停止uwsgi
+uwsgi --stop uwsgi.pid
+
+13. uwsgi配置：
+'''
+# process-related settings
+# master
+master = true
+
+# maximum number of worker processes
+processes = 4
+
+# ... with appropriate permissions - may be needed
+# chmod-socket    = 664
+# clear environment on exit
+vacuum = true
+# socket文件路径
+socket=/usr/www/target_djangoProject1/script/uwsgi.sock
+pidfile=/usr/www/target_djangoProject1/script/uwsgi.pid
+thunder-lock=true
+# 启用线程
+enable-threads=true
+#中断时间
+harakiri=30
+# 设置缓冲
+post-buffering=4096
+# 设置日志目录
+daemonize=/usr/www/target_djangoProject1/script/uwsgi.log
+
+'''

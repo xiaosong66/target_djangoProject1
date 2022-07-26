@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}个人信息{% endblock %}
+{% block css %}
+    <link href="/static/css/login/individualInfo.css" rel="stylesheet"/>{% endblock %}
+
+{% block myscript %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            /*
+                刷新数据库的内容，并显示到主页
+             */
+            function showItems(data) {
+                //将ajax的缓存数据取出显示
+                const parser = new DOMParser();
+                const htmlData = parser.parseFromString(data, 'text/html');
+                const obj = htmlData.getElementById('myInfoForm').innerHTML;
+                $("#myInfoForm").html(obj);
+            }
+
+
+            /************************ 用户个人信息 **************************/
+            //请求用户信息
+            // showItems() 函数执行完后会重置监听，需要重新绑定监听
+            $.ajax({
+                url: "/lg/get_user_info/",
+                type: "GET",
+                dataType: "text",
+                success: function modifyState(data) {
+                    showItems(data);
+                    $('#phoneNum').attr('readonly', 'readonly')
+                    $('#email').attr('readonly', 'readonly')
+
+                    //修改用户信息
+                    $("#infoModify").on('click', function () {
+                        $(this).attr('hidden', true)
+                        $('#cancelModify').attr('hidden', false)
+                        $('#infoSave').attr('hidden', false)
+                        $('#phoneNum')
+                            .removeAttr('readonly')
+                            .addClass('border rounded')
+                        $('#email')
+                            .removeAttr('readonly')
+                            .addClass('border rounded')
+                    })
+
+                    //取消按钮
+                    $("#cancelModify").on('click', function () {
+                        modifyState(data)   // 这里由于执行了showItems重置了状态，所以监听不到，需要执行这个重新绑定。
+                    })
+
+                    //保存按钮
+                    $('#infoSave').on('click', function () {
+                        const data = $('#myInfoForm');
+                        $.ajax({
+                            url: "/lg/save_user_info/",
+                            type: "POST",
+                            data: data.serialize(),
+                            dataType: "text",
+                            headers: {"X-CSRFtoken": $.cookie("csrftoken")},
+                            success: function (data) {
+                                showItems(data)
+                                modifyState(data)
+
+                            }
+                        })
+                    })
+                },
+                error: function () {
+                    console.log("失败");
+                },
+            });
+            /************************ 用户个人信息 **************************/
+
+            /************************ 密码 **************************/
+            //点击修改密码
+            const form = $("#pdManageForm");
+            $('#modifyPD_right').on('click', function () {
+                $.ajax({
+                    url: "{% url 'modify_PD' %}",
+                    type: "POST",
+                    data: form.serialize(),
+                    dataType: "text",
+                    headers: {"X-CSRFtoken": $.cookie("csrftoken")},
+                    success: function (data) {
+                        if (data === '密码修改成功'){
+                            form[0].reset();
+                            alert('密码修改成功');
+                        } else if(data ==="验证码错误"){
+                            alert('验证码错误')
+                        }
+                    },
+                });
+            })
+
+            /**************************************验证码*********************************/
+            //获取邮件验证码
+            $("#getAuthCodeBtn").on("click", function () {
+                $.ajax({
+                    url: "{% url 'sendMessage' type="indiInfo" %}",
+                    type: "POST",
+                    data: form.serialize(),
+                    dataType: "text",
+                    headers: {"X-CSRFtoken": $.cookie("csrftoken")},
+                    success: function () {
+                        //消息弹窗
+                    },
+                });
+            });
+            /**************************************验证码*********************************/
+
+            /************************************** 登录管理 *********************************/
+            //获取用户登录信息
+            // 分析常用登陆地，和最近登陆地
+            //分析两个月时间内的登录情况
+            $.ajax({
+                url: "{% url 'statistics_log_info' %}",
+                type: "POST",
+                dataType: "json",
+                headers: {"X-CSRFtoken": $.cookie("csrftoken")},
+                success: function (data) {
+                    //console.log(data)
+                    $('#recent_log_zone').val(data[0][0]);
+                    $('#common_log_zone').val(data[0][0]);
+                },
+            })
+            /************************************** 登录管理 *********************************/
+
+        })
+    </script>
+    <script src="/static/js/login/individualInfo.js"></script>
+{% endblock %}
+
+{% block content %}
+    <main class="container col d-flex border shadow mt-5 rounded bg-light" id="individualInfo">
+        <div class="col-3" id="leftSideColumn">
+            <h3 class="text-center mt-5">用户：{{ request.session.username }}</h3>
+            <div class="nav nav-tabs flex-column w-50 m-auto" role="tablist">
+                <button class="nav-link active" id="myInfo-tab" data-bs-toggle="tab" data-bs-target="#myInfo"
+                        type="button" role="tab" aria-controls="myInfo" aria-selected="true">个人信息
+                </button>
+
+                <button class="nav-link" id="pdManage-tab" data-bs-toggle="tab" data-bs-target="#pdManage"
+                        type="button" role="tab" aria-controls="pdManage" aria-selected="false">修改密码
+                </button>
+
+                <button class="nav-link" id="loginManage-tab" data-bs-toggle="tab" data-bs-target="#loginManage"
+                        type="button" role="tab" aria-controls="loginManage" aria-selected="false">登录管理
+                </button>
+
+                <button class="nav-link" id="about-tab" data-bs-toggle="tab" data-bs-target="#about"
+                        type="button" role="tab" aria-controls="about" aria-selected="false">关于
+                </button>
+            </div>
+        </div>
+
+        <div class="col-9 mt-4" id="rightSideColumn">
+            <div class="tab-content mt-5" id="rightContent">
+                <!-- 用户信息 -->
+                <div class="tab-pane fade show active row" id="myInfo" role="tabpanel" aria-labelledby="myInfo-tab">
+                    <form method="post" id="myInfoForm">
+                        {% csrf_token %}
+                        <div class="col">
+                            <label for="username">用户名：</label>
+                            <input type="text" name="username" id="username"
+                                   value="{{ request.session.username }}" readonly>
+                        </div>
+                        <div class="col">
+                            <label for="registerTime">注册时期:</label>
+                            <input type="text" name="registerTime" id="registerTime"
+                                   value="{{ registerDate }}" readonly>
+                        </div>
+                        <div class="col">
+                            <label for="userType">用户类型：</label>
+                            {% if userType == '0' %}
+                                <input type="text" name="userType" id="userType" value="普通用户" readonly>
+                            {% else %}
+                                <input type="text" name="userType" id="userType" value="管理员" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <label for="phoneNum">手机号：</label>
+                            <input type="tel" name="phoneNum" id="phoneNum" value="{{ userInfo.phone_number }}">
+                        </div>
+                        <div class="col">
+                            <label for="email">邮箱：</label>
+                            <input type="email" name="email" id="email" value="{{ userInfo.email }}">
+                        </div>
+                        <div class="col formButton mt-5 me-5 float-end">
+                            <button class="btn btn-success" type="button" id="infoModify">修改</button>
+                            <button class="btn btn-primary" type="button" id="cancelModify" hidden>取消</button>
+                            <button class="btn btn-warning" type="button" id="infoSave" hidden>保存</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 密码信息 -->
+                <div class="tab-pane fade" id="pdManage" role="tabpanel" aria-labelledby="pdManage-tab">
+                    <form id="pdManageForm">
+                        <!-- 密码 -->
+                        <div id="pdDiv">
+                            <div hidden>
+                                <label for="username">用户名：</label>
+                                <input type="text" name="username" id="username"
+                                       value="{{ request.session.username }}" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="col-2" for="now_password">原密码：</label>
+                                <input class="col-4" type="password" id="now_password" name="now_password"
+                                       autocomplete="new-password">
+                            </div>
+                            <div class="col">
+                                <label class="col-2" for="new_password">新密码：</label>
+                                <input class="col-4" type="password" id="new_password" name="new_password">
+                            </div>
+                            <div class="col">
+                                <label class="col-2" for="repeat_new_password">重复密码：</label>
+                                <input class="col-4" type="password" id="repeat_new_password"
+                                       name="repeat_new_password">
+                            </div>
+                        </div>
+                        <!-- 验证码 -->
+                        <div id="authCodeDiv">
+                            <div class="col">
+                                <label class="col-2" for="myEmail">邮箱:</label>
+                                <input class="col-4" type="email" id="myEmail" name="myEmail">
+
+                                <button class="text-decoration-underline col-2" type="button" id="getAuthCodeBtn">
+                                    获取验证码
+                                </button>
+                            </div>
+                            <div class="col">
+                                <label class="col-2" for="authCode">验证码：</label>
+                                <input class="col-4" type="text" id="authCode" name="authCode">
+                            </div>
+                        </div>
+                        <!-- 按钮 -->
+                        <div class="col mt-5 me-5 float-end">
+                            <button class="btn btn-primary" type="reset">取消</button>
+                            <button class="btn btn-warning" type="button" id="modifyPD_right">提交</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!--登录管理    分析用户最常登录的地区，自动学习，并且记录-->
+                <div class="tab-pane fade" id="loginManage" role="tabpanel" aria-labelledby="loginManage-tab">
+                    <form id="loginManageForm">
+                        <div class="col">
+                            <div class="col mt-2">
+                                <label class="col-2" for="common_log_zone">常用登陆地：</label>
+                                <input class="col-4 border-0" type="text" id="common_log_zone" readonly>
+                            </div>
+                            <div class="col mt-2">
+                                <label class="col-2" for="recent_log_zone">最近登录地：</label>
+                                <input class="col-4 border-0" type="text" id="recent_log_zone" readonly>
+                            </div>
+                            <div class="col mt-2">
+                                <label class="col-2" for="recent_log_ip">常用登录IP：</label>
+                                <input class="col-4 border-0" type="text" id="recent_log_ip" value="110.191.168.45" readonly>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+
+                <!-- 作者-->
+                <div class="tab-pane fade" id="about" role="tabpanel" aria-labelledby="about-tab">
+                    <div id="aboutForm">
+                        <div class="col mt-2">
+                            <label class="col-1" for="identity_author">作者：</label>
+                            <input class="col-4 text-area border-0" id="identity_author" type="text" value="hongsong">
+                        </div>
+                        <div class="col mt-2">
+                            <label class="col-1" for="identity_tel">电话：</label>
+                            <input class="col-4 text-area border-0" id="identity_tel" type="text" value="130-xxxx-xxxx">
+                        </div>
+                        <div class="col mt-2">
+                            <label class="col-1" for="identity_email">邮箱：</label>
+                            <input class="col-4 text-area border-0" id="identity_email" type="text"
+                                   value="237xxx@qq.com">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+
+
+
+
+{% endblock %}

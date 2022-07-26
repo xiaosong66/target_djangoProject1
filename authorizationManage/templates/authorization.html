@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}授权管理{% endblock %}
+{% block css %}
+    <link href="/static/css/authorizationManage/authorizationManage.css" rel="stylesheet"/>
+{% endblock %}
+
+{% block myscript %}
+    <script src="/static/js/authorizationManage/authorizationManage.js"></script>
+{% endblock %}
+
+{% block content %}
+    <main class="authManage-page bg-light rounded" id="authManage-page">
+        <!-- 切换框 -->
+        <div class="d-inline-block rounded text-end" id="exchange">
+            <a href="#" class="ms-2 text-decoration-none text-black exchange_notions">切换至登录授权管理</a>
+            <a class="fas fa-exchange-alt text-decoration-none me-2 ms-1 text-black"></a>
+        </div>
+
+        <!-- 数量, 原来定位高度的-->
+        <div class="" id="num">{{ num }}</div>
+
+        <!-- 资产授权管理 -->
+        <div class="col mx-auto" id="propertyAuthInfo">
+            <div>
+                <div class="d-flex float-end mt-2 me-4" id="authPropertyManaDiv">
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                            data-bs-target="#" id="deleteAllSelectedPropertiesBtn">删除
+                    </button>
+                </div>
+
+                <h4 class="mt-2 ms-2 d-inline-block align-self-center">资产授权管理</h4>
+                <!-- 表格 -->
+                <table class="table table-bordered table-striped">
+                    <thead class="table-success">
+                    <tr class="text-center">
+                        <th><label for="selectAll"></label><input type="checkbox" id="selectAll"></th>
+                        <th>编号</th>
+                        <th>所属用户</th>
+                        <th>被共享用户</th>
+                        <th>共享起始时间</th>
+                        <th>共享结束时间</th>
+                        <th class="overflow-hidden">共享文件描述</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody class="text-center" id="showShareItems">
+                    {% if propertyAllData %}
+                        {% for item in propertyAllData %}
+                            <tr class="property-item" id="{{ item.id }}">
+                                <td><label><input type="checkbox"></label></td>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ item.original_user }}</td>
+                                <td>{{ item.share_users }}</td>
+                                <td>{{ item.share_start_time }}</td>
+                                <td>{{ item.share_end_time }}</td>
+                                <td>
+                                    <textarea class="border-0 description" style="font-size: 10px"
+                                              readonly>{{ item.fileDescribe }}</textarea>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-primary modifyPropertyBtn"
+                                            data-bs-toggle="modal" data-bs-target="#modifyAuthPropertyModal">修改
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm btn-warning deletePropertyBtn"
+                                            data-bs-toggle="modal" data-bs-target="#deleteAuthPropertyModal">删除
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 资产管理的模态框  -->
+        <!-- 删除选中的所有资产 -->
+        <div class="modal fade" id="deleteSelectedAuthPropertyModal" tabindex="-1"
+             aria-labelledby="deleteSelectedAuthPropertyModal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">你正在删除所有选中的资产授权信息</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h3>确认删除所有选中的记录吗？</h3>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                id="affirm_deleteAllSelected_Property">
+                            确定
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 修改 -->
+        <div class="modal fade" id="modifyAuthPropertyModal" tabindex="-1" aria-labelledby="modifyAuthPropertyModal"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">你正在修改已授权资产信息</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="modifyPropertyForm">
+                            <div class="mb-3 visually-hidden">
+                                <label>id
+                                    <input class="border-0" type="text" id="modify_auth_file_id" name="id" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label>所属用户：
+                                    <input class="border-0" type="text" value="{{ request.session.username }}"
+                                           name="username" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="shared_username">被共享用户：</label>
+                                <input class="form-control" type="text" name="shared_username" id="shared_username">
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_share_start_time" class="form-label">共享开始时间</label>
+                                <input class="form-control" id="M_share_start_time" type="datetime-local"
+                                       name="M_share_start_time">
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_share_end_time" class="form-label">共享结束时间</label>
+                                <input class="form-control" type="datetime-local" id="M_share_end_time"
+                                       name="M_share_end_time">
+                            </div>
+                            <div class="mb-3">
+                                <label for="sharedFile_describe">共享文件描述：</label>
+                                <input class="form-control" id="sharedFile_describe" name="sharedFile_describe">
+                            </div>
+                            <!-- 小m指的修改，大M指的为模态框 -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                        id="affirm_modify_share">
+                                    确定
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 删除资产 -->
+        <div class="modal fade" id="deleteAuthPropertyModal" tabindex="-1" aria-labelledby="deleteAuthPropertyModal"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">你正在删除一条资产授权信息</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h3>确认删除此条记录吗？</h3>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                id="affirm_delete_Property">
+                            确定
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 资产管理的模态框  -->
+
+        <!-- 登录授权信息管理 -->
+        <div class="col mt-2 mx-auto" id="loginAuthInfo" hidden>
+            <div>
+                <div class="d-flex float-end mt-2 me-4" id="authIpManaDiv">
+                    <button type="button" class="btn btn-sm btn-success me-2" data-bs-toggle="modal"
+                            data-bs-target="#addLoginIpModal" id="addNewLoginIpBtn">新增
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-warning modifyPdBtn"
+                            data-bs-toggle="modal" data-bs-target="#" id="deleteSelectAuthIPBtn">删除
+                    </button>
+                </div>
+
+                <h4 class="mt-2 ms-2 d-inline-block align-self-center">登录ip授权管理</h4>
+                <!-- 表格 -->
+                <table class="table table-bordered table-striped" id="ipAuthTable">
+                    <thead class="table-success">
+                    <tr class="text-center">
+                        <th><label for="selectAll"></label><input type="checkbox" id="selectAll"></th>
+                        <th>编号</th>
+                        <th>用户</th>
+                        <th>登录ip</th>
+                        <th>首次授权时间</th>
+                        <th>授权起始时间</th>
+                        <th>授权结束时间</th>
+                        <th>是否授权登录</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody class="text-center" id="showIpItems">
+                    {% if ipAllData %}
+                        {% for item in ipAllData %}
+                            <tr class="property-item" id="{{ item.id }}">
+                                <td><label><input type="checkbox"></label></td>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ item.username }}</td>
+                                <td>{{ item.ip }}</td>
+                                <td>{{ item.auth_first_time }}</td>
+                                <td>{{ item.auth_start_time }}</td>
+                                <td>{{ item.auth_end_time }}</td>
+                                <td>{{ item.if_auth_login }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-primary modifyAuthIPBTN"
+                                            data-bs-toggle="modal" data-bs-target="#modifyAuthIPModal">修改
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm btn-warning deleteAuthIPBTN"
+                                            data-bs-toggle="modal" data-bs-target="#deleteAuthIPModal">删除
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 登录管理的模态框  -->
+        <!-- 新增 -->
+        <div class="modal fade" id="addLoginIpModal" tabindex="-1" aria-labelledby="deleteWarn" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">你正在新增登录IP</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="addNewIpForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label>用户：
+                                    <input class="border-0 num" type="text" value="{{ request.session.username }}"
+                                           readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_create_time" class="form-label">创建时间</label>
+                                <input class="form-control" id="M_create_time" type="text" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_auth_ip" class="form-label">授权IP</label>
+                                <input class="form-control" id="M_auth_ip" type="text" name="M_auth_ip">
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_auth_start_time" class="form-label">授权起始时间</label>
+                                <input class="form-control" id="M_auth_start_time" type="datetime-local"
+                                       name="M_auth_start_time">
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_auth_end_time" class="form-label">授权结束时间</label>
+                                <input class="form-control" type="datetime-local" id="M_auth_end_time"
+                                       name="M_auth_end_time">
+                            </div>
+                            <div class="mt-1">
+                                <div>
+                                    是否授权登录:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="authLogin_yes" value="1">
+                                        <label class="form-check-label" for="authLogin_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="authLogin_no" value="0">
+                                        <label class="form-check-label" for="authLogin_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                        id="affirm_addNewIp">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- 修改 -->
+        <div class="modal fade" id="modifyAuthIPModal" tabindex="-1" aria-labelledby="modifyAuthIPModal"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">你正在修改授权的IP</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="modifyIpForm">
+                        <div class="modal-body">
+                            <div class="visually-hidden">
+                                <label>id<input type="text" id="IPid" name="IPid"></label>
+                            </div>
+                            <div class="mb-3">
+                                <label>用户：
+                                    <input class="border-0 num" type="text" value="{{ request.session.username }}"
+                                           name="username" readonly>
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_modify_create_time" class="form-label">创建时间</label>
+                                <input class="form-control" id="M_modify_create_time" type="text" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_modify_auth_ip" class="form-label">授权IP</label>
+                                <input class="form-control" id="M_modify_auth_ip" type="text" name="M_auth_ip">
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_modify_auth_start_time" class="form-label">授权起始时间</label>
+                                <input class="form-control" id="M_modify_auth_start_time" type="datetime-local"
+                                       name="M_auth_start_time">
+                            </div>
+                            <div class="mb-3">
+                                <label for="M_modify_auth_end_time" class="form-label">授权结束时间</label>
+                                <input class="form-control" type="datetime-local" id="M_modify_auth_end_time"
+                                       name="M_auth_end_time">
+                            </div>
+                            <!-- 小m指的修改，大M指的为模态框 -->
+                            <div class="mt-1">
+                                <div>
+                                    是否授权登录:
+                                    <div class="form-check d-inline-block ms-1">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="m_authLogin_yes" value="1">
+                                        <label class="form-check-label" for="m_authLogin_yes">
+                                            是
+                                        </label>
+                                    </div>
+                                    <div class="form-check d-inline-block">
+                                        <input class="form-check-input" type="radio" name="if_authLogin"
+                                               id="m_authLogin_no" value="0">
+                                        <label class="form-check-label" for="m_authLogin_no">
+                                            否
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                        id="affirm_modifyIp">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 删除 -->
+        <div class="modal fade" id="deleteAuthIPModal" tabindex="-1" aria-labelledby="deleteAuthIPModal"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">你正在删除一条IP授权信息</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h3>确认删除此条记录吗？</h3>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                    id="affirm_deleteIp">
+                                确定
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 删除所有数据 -->
+        <div class="modal fade" id="deleteSelectAuthIP" tabindex="-1" aria-labelledby="deleteSelectAuthIP" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">警告</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        确定删除所选数据吗？
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" id="affirm_deleteSelectAuthIP">确定
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- 删除数据成功的模态框 -->
+    <div class="toast float-end" role="alert" aria-live="assertive" aria-atomic="true" id="deleteOK">
+        <div class="toast-header">
+            <strong class="me-auto">提醒</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            删除数据成功！
+        </div>
+    </div>
+
+    <!-- 编辑数据成功的模态框  -->
+    <div class="toast float-end" role="alert" aria-live="assertive" aria-atomic="true" id="editOK">
+        <div class="toast-header">
+            <strong class="me-auto">提醒</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            编辑数据成功！
+        </div>
+    </div>
+
+    <!-- 添加数据成功的模态框 -->
+    <div class="toast float-end" role="alert" aria-live="assertive" aria-atomic="true" id="addOK">
+        <div class="toast-header">
+            <strong class="me-auto">提醒</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            数据添加成功！
+        </div>
+    </div>
+
+
+
+
+{% endblock %}

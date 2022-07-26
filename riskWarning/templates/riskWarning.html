@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}风险警报{% endblock %}
+{% block css %}
+    <link href="/static/css/riskWarning/riskWarning.css" rel="stylesheet"/>{% endblock %}
+{% block myscript %}
+    <script src="/static/js/riskWarning/showRiskChart.js"></script>
+    <script src="/static/js/riskWarning/riskWarning.js"></script>
+{% endblock %}
+
+
+{% block content %}
+    <main class="warning-page border mx-auto rounded pt-2 bg-light" id="warning-page" style="width: 98%">
+        <div class="col d-flex" id="userRiskCondition" style="height: 500px">
+            <div class="d-inline-block col-6 mx-5" id="userRiskValue" style="height: 100%;">
+                <h3 class="d-inline-block border-bottom border-2 border-dark">用户安全评分图:</h3>
+                <div id="userRiskValueChart" style="height: 100%; width: 100%;"></div>
+            </div>
+
+            <div class="d-inline-block col-5 mx-auto">
+                <h3 class="d-inline-block border-bottom border-2 border-dark" id="showTitle">风险评分总览</h3>
+                <div class="ms-3 mt-4" id="userRiskWindow">
+                    <div id="allRisk">
+                        <div class="border-bottom" id="allRisk_pd">
+                            <h5>密码安全评分：{{ pdScore }}/20</h5>
+                            <div class="small ms-3 mb-2">
+                                登录密码强度情况：<br/>
+                                {% if pdSecurityData|length == 0 %}
+                                    <b class="text-primary">"密码强度较高,继续保持"</b>
+                                {% else %}
+                                    <b class="text-danger">"密码强度较弱,存在风险"</b>
+                                {% endif %}
+                                <br/>
+                            </div>
+                        </div>
+                        <div class="border-bottom mb-2" id="allRisk_property">
+                            <h5>资产安全评分：{{ propertyScore }}/20</h5>
+                            <div class="small ms-3">
+                                资产备份与加密情况：<br>
+                                {% if propertySecurityData|length == 0 %}
+                                    <b class="text-primary">"资产较安全,继续保持"</b>
+                                {% else %}
+                                    <b class="text-danger">"资产存在风险，请及时解决"</b>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="border-bottom mb-3" id="allRisk_account">
+                            <h5>账户安全评分：{{ accountScore }}/20</h5>
+                            <div class="small ms-3">
+                                账户手机号和邮箱设置情况：<br/>
+                                {% if accountSecurityData|length == 0 %}
+                                    <b class="text-primary">"账户资料已完善"</b>
+                                {% else %}
+                                    <b class="text-danger">"账户存在风险，请及时完善个人信息"</b><br>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="border-bottom mb-2" id="allRisk_action">
+                            <h5>行为安全评分：{{ actionScore }}/20</h5>
+                            <div class="small ms-3">
+                                常用登录地、常用登录设备、常用登录IP等情况：<br/>
+                                {% if actionSecurityData|length == 0 %}
+                                    <b class="text-primary">"账户常用地登录，无异常信息"</b>
+                                {% else %}
+                                    <b class="text-danger">"异地登录，及时排查"</b>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="border-bottom mb-2" id="allRisk_other">
+                            <h5>其他安全评分：{{ otherScore }}/20</h5>
+                            <div class="small ms-3">
+                                服务器安全警报、账户锁定等情况：<br/>
+                                {% if otherSecurityData|length == 0 %}
+                                    <b class="text-primary">"无其他异常信息"</b>
+                                {% else %}
+                                    <b class="text-danger">"存在异常信息，及时查看！"</b>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {#    //密码安全#}
+                    <div id="pdSecurity" hidden>
+                        <div class="border-bottom mb-2">
+                            <h5>密码安全评分：{{ pdScore }}/20</h5>
+                            <div class="small ms-3">
+                                登录密码强度：<br/>
+                                {% if pdSecurityData == '' %}
+                                    <b>密码强度较高，继续保持！</b>
+                                {% else %}
+                                    <i class="text-danger">"密码过弱,请及时修改"</i><br/>
+                                <b class="text-danger">{{ pdSecurityData }}</b>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {#    //资产安全#}
+                    <div id="propertySecurity" hidden>
+                        <div class="border-bottom mb-2">
+                            <h5>资产安全评分：{{ propertyScore }}/20</h5>
+                            <div class="small ms-3">
+                                资产备份与加密：
+                                {% if propertySecurityData == '' %}
+                                    <br><b>所有资产较安全，请继续保持</b>
+                                {% else %}
+                                    <i class="text-danger">"以下资产存在风险，请及时对资产进行加密或者备份"</i><br>
+                                    <b class="text-danger">
+                                        {{ propertySecurityData }}
+                                    </b>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {#    //其他安全#}
+                    <div id="otherSecurity" hidden>
+                        <div class="border-bottom mb-2">
+                            <h5>其他安全评分：{{ otherScore }}/20</h5>
+                            <div class="small ms-3">
+                                服务器安全警报，用户安全警报，账户锁定等等：<br/>
+                                {% if otherSecurityData|length == 0 %}
+                                    <b class="text-primary">"无其他异常信息"</b>
+                                {% else %}
+                                    <i class="text-danger">"以下风险及时排查"</i><br>
+                                    <b class="text-danger">
+                                        {{ otherSecurityData }}
+                                    </b>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {#    账户安全#}
+                    <div id="accountSecurity" hidden>
+                        <div class="border-bottom mb-3">
+                            <h5>账户安全评分：{{ accountScore }}/20</h5>
+                            <div class="small ms-3">
+                                账户资料完善度、 邮箱设置：<br/>
+                                {% if accountSecurityData|length == 0 %}
+                                    <br><b>账户资料已完善</b>
+                                {% else %}
+                                    <i class="text-danger">"账户存在风险，请及时完善下面个人信息"</i><br>
+                                    <b class="text-danger">
+                                        {{ accountSecurityData }}
+                                    </b>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {#    //行为安全#}
+                    <div id="actionSecurity" hidden>
+                        <div class="border-bottom mb-2">
+                            <h5>行为安全评分：{{ actionScore }}/20</h5>
+                            <div class="small ms-3">
+                                常用登录地：{{ common_login_location }}<br>
+                                常用登录IP：{{ common_login_ip }}<br/>
+                                {% if actionSecurityData|length == 0 %}
+                                    <b class="text-primary">"账户常用地登录，无异常信息"</b>
+                                {% else %}
+                                    <i class="text-danger">"账户存在风险，风险如下"</i><br>
+                                    <b class="text-danger">
+                                        {{ actionSecurityData }}<br/>
+                                    请在"登录管理"中排查。
+                                    </b>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+{% endblock %}

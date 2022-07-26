@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}登录{% endblock %}
+{% block css %}
+    <link href="/static/css/login/login.css" rel="stylesheet"/>{% endblock %}
+{% block judgeLogined %}{% endblock %}
+
+{% block myscript %}
+    <script type="text/javascript">
+        {% if request.user|safe != "AnonymousUser" %}
+            alert("已经登录！")
+            location.href = '/index/'
+        {% endif %}
+    </script>
+
+    <!-- 获取ip的搜狐接口 -->
+    <script src="http://pv.sohu.com/cityjson"></script>
+    <script src="/static/js/login/login.js"></script>
+{% endblock %}
+
+{% block content %}
+    <h1 id="title">用户信息安全检测与管理系统</h1>
+    <main class="form-signin shadow rounded" id="logWindow">
+        <form id="loginForm">
+            {% csrf_token %}
+            <h1 class="h3 mb-3 fw-normal text-center">欢迎登录</h1>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded" id="floatingInput" placeholder="Username"
+                       name="username">
+                <label for="floatingInput">用户名</label>
+            </div>
+            <div class="form-floating">
+                <input type="password" class="form-control rounded" id="floatingPassword" placeholder="Password"
+                       name="pwd">
+                <label for="floatingPassword">密码</label>
+            </div>
+
+            <div class="checkbox mb-3">
+                <a class="d-inline text-decoration-none" href="{% url 'modifyPDHTML' %}">忘记密码</a>
+                <a class="d-inline text-decoration-none float-end" href="{% url "createUser" %}">注册账号</a>
+            </div>
+            <div class="">
+                <button class="btn btn-success" type="reset">重置</button>
+                <button class="btn btn-primary float-end" type="button" id="login">登录</button>
+            </div>
+        </form>
+    </main>
+
+    {#    检测到未被授权的ip和已经过期的ip授权信息模态弹框    #}
+    <div class="modal" tabindex="-1" id="verify_self">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">继续登录请验证邮箱信息</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 验证码 -->
+                    <div id="authCodeDiv">
+                        <form id="verifyCodeForm">
+                            <div class="col">
+                                <label class="col-2" for="myEmail">邮箱:</label>
+                                <input class="col-5" type="email" id="myEmail" name="myEmail">
+
+                                <button class="text-decoration-underline col-2 small " type="button"
+                                        id="getAuthCodeBtn">
+                                    获取验证码
+                                </button>
+                            </div>
+                            <div class="col mt-3">
+                                <label class="col-2" for="authCode">验证码：</label>
+                                <input class="col-5" type="text" id="authCode" name="authCode">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="verifyEmailCode">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if messages %}
+        <script>
+            {% for msg in messages %}
+                alert('{{ msg.message }}');
+            {% endfor %}
+        </script>
+    {% endif %}
+{% endblock %}
